@@ -17,7 +17,7 @@ require("dotenv").config();
 // multer middleware for handling files upload
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, uploadDirectory);
+    cb(null, "./upload");
   },
   filename: (req, file, cb) => {
     cb(null, file.originalname + Date.now() + ".jpg");
