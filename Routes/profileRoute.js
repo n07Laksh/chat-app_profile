@@ -67,6 +67,7 @@ router.post("/profile", getUser, upload, async (req, res) => {
       message: "Profile image uploaded successfully",
     });
   } catch (error) {
+    console.log("production error", error)
     return res
       .status(500)
       .json({ error: true, message: "Internal server error" + error  });
