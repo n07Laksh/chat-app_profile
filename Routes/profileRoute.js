@@ -8,19 +8,16 @@ const Profile = require("../Models/Profile");
 const router = express.Router();
 require("dotenv").config();
 
-// Create the upload directory if it doesn't exist
-// const uploadDirectory = "./upload";
-// if (!fs.existsSync(uploadDirectory)) {
-//   fs.mkdirSync(uploadDirectory);
-// }
-
-// multer middleware for handling files upload
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "./upload");
   },
   filename: (req, file, cb) => {
-    cb(null, file.originalname + Date.now() + ".jpg");
+    const filename = file.originalname.split('.')[0];
+    const timestamp = Date.now();
+    const extension = file.originalname.split('.').slice(-1)[0]; 
+    const newFilename = `${filename}_${timestamp}.${extension}`;
+    cb(null, newFilename); 
   },
 });
 
