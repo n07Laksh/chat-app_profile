@@ -9,10 +9,10 @@ const router = express.Router();
 require("dotenv").config();
 
 // Create the upload directory if it doesn't exist
-const uploadDirectory = "./upload";
-if (!fs.existsSync(uploadDirectory)) {
-  fs.mkdirSync(uploadDirectory);
-}
+// const uploadDirectory = "./upload";
+// if (!fs.existsSync(uploadDirectory)) {
+//   fs.mkdirSync(uploadDirectory);
+// }
 
 // multer middleware for handling files upload
 const storage = multer.diskStorage({
