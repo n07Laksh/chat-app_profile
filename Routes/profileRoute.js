@@ -10,7 +10,7 @@ require("dotenv").config();
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "./upload");
+    cb(null, path.join(__dirname, '/upload/'));
   },
   filename: (req, file, cb) => {
     const filename = file.originalname.split('.')[0];
@@ -67,7 +67,7 @@ router.post("/profile", getUser, upload, async (req, res) => {
     console.log("production error", error)
     return res
       .status(500)
-      .json({ error: true, message: "Internal server error" + error  });
+      .json({ error: true, message: `Internal server errors ${error}`});
   }
 });
 
