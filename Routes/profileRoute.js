@@ -20,7 +20,7 @@ const s3 = new AWS.S3({
 // ommiting this feature because of vercel don't allow read/write event in serverless
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "./upload");
+    cb(null, "./temp");
   },
   filename: (req, file, cb) => {
     const filename = file.originalname.split(".")[0];
