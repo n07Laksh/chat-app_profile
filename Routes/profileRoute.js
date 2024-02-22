@@ -10,17 +10,21 @@ require("dotenv").config();
 
 const AWS = require("aws-sdk");
 
+const reg = process.env.REGION;
+const accKey = process.env.ACCESS_KEY;
+const secAccKey = process.env.SECRET_ACCESS_KEY;
+
 // Set the region and credentials
 const s3 = new AWS.S3({
-  region: "us-east-1",
-  accessKeyId: "AKIAXB6F253CJ3NH7M57",
-  secretAccessKey: "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",
+  region: reg,
+  accessKeyId: accKey,
+  secretAccessKey: secAccKey,
 });
 
 // ommiting this feature because of vercel don't allow read/write event in serverless
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "./temp");
+    cb(null, "/tmp");
   },
   filename: (req, file, cb) => {
     const filename = file.originalname.split(".")[0];
@@ -33,6 +37,8 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage }).single("picture");
 
+
+
 router.post("/profile", getUser, upload, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -42,7 +48,7 @@ router.post("/profile", getUser, upload, async (req, res) => {
       Bucket: "chatappprofileimg",
       Key: `profile_images/${userId}_${Date.now()}_${req.file.originalname}`,
       Body: fs.createReadStream(req.file.path),
-      ACL: "public-read"
+      ACL: "public-read",
     };
 
     const data = await s3.upload(uploadParams).promise();
