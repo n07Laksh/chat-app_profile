@@ -56,9 +56,10 @@ router.post("/profile", getUser, upload, async (req, res) => {
     }
 
     // Upload the image to AWS S3
+    const encodedFileName = encodeURIComponent(req.file.originalname);
     const uploadParams = {
       Bucket: "userprofileimgbucket",
-      Key: `profile_images/${userId}_${req.file.originalname}`,
+      Key: `profile_images/${userId}_${encodedFileName}`,
       Body: fs.createReadStream(req.file.path),
     };
 
@@ -92,13 +93,14 @@ router.post("/profile", getUser, upload, async (req, res) => {
 });
 
 async function deleteProfileImage(imageUrl) {
-  const parsedUrl = url.parse(imageUrl);
-  const deleteKey = parsedUrl.pathname.substring(1); // Remove leading '/'`
   try {
+    const decodedFileName = decodeURIComponent(imageUrl.split("/").pop());
+    const deleteKey = "profile_images/" + decodedFileName;
     const params = {
       Bucket: "userprofileimgbucket",
-      Key: deleteKey, // Extract key from image URL
+      Key: deleteKey,
     };
+
     await s3.deleteObject(params);
   } catch (error) {
     throw new Error("Failed to delete profile image");
