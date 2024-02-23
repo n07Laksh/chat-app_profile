@@ -8,20 +8,24 @@ const Profile = require("../Models/Profile");
 const router = express.Router();
 require("dotenv").config();
 
-const AWS = require("aws-sdk");
+const { Upload } = require("@aws-sdk/lib-storage");
+const { S3 } = require("@aws-sdk/client-s3");
 
 const reg = process.env.REGION;
 const accKey = process.env.ACCESS_KEY;
 const secAccKey = process.env.SECRET_ACCESS_KEY;
 
 // Set the region and credentials
-const s3 = new AWS.S3({
+const s3 = new S3({
   region: reg,
-  accessKeyId: accKey,
-  secretAccessKey: secAccKey,
+
+  credentials: {
+    accessKeyId: accKey,
+    secretAccessKey: secAccKey,
+  },
 });
 
-// ommiting this feature because of vercel don't allow read/write event in serverless
+// usign tmp folder for serverless (vercel || cyclic)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "/tmp");
@@ -37,32 +41,44 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage }).single("picture");
 
-
-
 router.post("/profile", getUser, upload, async (req, res) => {
   try {
     const userId = req.user.id;
-
-    // Upload the image to AWS S3
-    const uploadParams = {
-      Bucket: "chatappprofileimg",
-      Key: `profile_images/${userId}_${Date.now()}_${req.file.originalname}`,
-      Body: fs.createReadStream(req.file.path),
-      ACL: "public-read",
-    };
-
-    const data = await s3.upload(uploadParams).promise();
-
-    // Delete the local file after uploading to S3
-    fs.unlinkSync(req.file.path);
 
     const user = await Profile.findOne({ userid: userId }).select(
       "-password -name -email"
     );
 
+    // Upload the image to AWS S3
+    const fileKey = `profile_images/${userId}_${req.file.originalname}`;
+    const uploadParams = {
+      Bucket: "userprofileimgbucket",
+      Key: fileKey,
+      Body: fs.createReadStream(req.file.path),
+    };
+
+    const data = await new Upload({
+      client: s3,
+      params: uploadParams,
+    }).done();
+
+    if (user && user.profile_img) {
+      const params = {
+        Bucket: "userprofileimgbucket",
+        Key: fileKey,
+      };
+      s3.deleteObject(params, (err, data) => {
+        if (err) {
+          return res
+            .status(500)
+            .json({ error: true, message: `Internal server errors for deleting the file` });
+        }
+      });
+    }
+
     if (!user) {
       const newUser = new Profile({
-        profile_img: data.Location, // Store the S3 URL instead of the local path
+        profile_img: data.Location,
         userid: userId,
       });
       await newUser.save();

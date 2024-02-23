@@ -16,6 +16,8 @@ app.get("/",(req,res)=>{
     });
 })
 
+
+//configuration for vercel or cyclic (serverless) to allow temp data storage
 app.use(express.static(__dirname + '/tmp'));
 app.use('/tmp', express.static('tmp'));
 
