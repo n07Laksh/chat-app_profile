@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const getUser = require("../Middleware/getUser");
 const Profile = require("../Models/Profile");
+const url = require("url");
 
 const router = express.Router();
 require("dotenv").config();
@@ -49,11 +50,15 @@ router.post("/profile", getUser, upload, async (req, res) => {
       "-password -name -email"
     );
 
+    // Delete existing profile image if it exists
+    if (user && user.profile_img) {
+      await deleteProfileImage(user.profile_img);
+    }
+
     // Upload the image to AWS S3
-    const fileKey = `profile_images/${userId}_${req.file.originalname}`;
     const uploadParams = {
       Bucket: "userprofileimgbucket",
-      Key: fileKey,
+      Key: `profile_images/${userId}_${req.file.originalname}`,
       Body: fs.createReadStream(req.file.path),
     };
 
@@ -61,20 +66,6 @@ router.post("/profile", getUser, upload, async (req, res) => {
       client: s3,
       params: uploadParams,
     }).done();
-
-    if (user && user.profile_img) {
-      const params = {
-        Bucket: "userprofileimgbucket",
-        Key: fileKey,
-      };
-      s3.deleteObject(params, (err, data) => {
-        if (err) {
-          return res
-            .status(500)
-            .json({ error: true, message: `Internal server errors for deleting the file` });
-        }
-      });
-    }
 
     if (!user) {
       const newUser = new Profile({
@@ -99,5 +90,19 @@ router.post("/profile", getUser, upload, async (req, res) => {
       .json({ error: true, message: `Internal server errors ${error}` });
   }
 });
+
+async function deleteProfileImage(imageUrl) {
+  const parsedUrl = url.parse(imageUrl);
+  const deleteKey = parsedUrl.pathname.substring(1); // Remove leading '/'`
+  try {
+    const params = {
+      Bucket: "userprofileimgbucket",
+      Key: deleteKey, // Extract key from image URL
+    };
+    await s3.deleteObject(params);
+  } catch (error) {
+    throw new Error("Failed to delete profile image");
+  }
+}
 
 module.exports = router;
