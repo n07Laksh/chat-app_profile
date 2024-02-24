@@ -9,7 +9,6 @@ app.use(express.json());
 app.use(cors())
 dbconnection();
 
-
 app.get("/",(req,res)=>{
     res.send({
         message:"Welcome to the API"
@@ -21,7 +20,7 @@ app.get("/",(req,res)=>{
 app.use(express.static(__dirname + '/tmp'));
 app.use('/tmp', express.static('tmp'));
 
-app.use("/chatapp/user/auth", require("./Routes/profileRoute"));
+app.use("/chatapp/user/profileimg", require("./Routes/profileRoute"));
 
 const PORT = process.env.PORT || 8080
 
