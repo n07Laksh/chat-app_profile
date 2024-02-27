@@ -3,12 +3,12 @@ const jwt = require("jsonwebtoken");
 const secretKey = process.env.SECRET_KEY;
 
 const getUser = (req, res, next) => {
-  const token = req.header("token");
+  const token = req.cookies?.sessionToken;
 
   if (!token) {
     return res.status(400).json({
       error: true,
-      message: "Your session is end please logout and login again",
+      message: "Your session is expire, please login again",
     });
   }
 
@@ -21,7 +21,7 @@ const getUser = (req, res, next) => {
   } catch (error) {
     return res
       .status(400)
-      .json({ error: true, message: "Your session is end please logout and login again" });
+      .json({ error: true, message: "Your session is expire, please login again" });
   }
 };
 
