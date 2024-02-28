@@ -3,11 +3,8 @@ const jwt = require("jsonwebtoken");
 const secretKey = process.env.SECRET_KEY;
 
 const getUser = (req, res, next) => {
-
-  console.log(req);
   const token = req.cookies?.sessionToken;
 
-  console.log("token",token);
   if (!token) {
     return res.status(400).json({
       error: true,
