@@ -5,6 +5,8 @@ const secretKey = process.env.SECRET_KEY;
 const getUser = (req, res, next) => {
   const token = req.cookies?.sessionToken;
 
+  console.log(req)
+
   if (!token) {
     return res.status(400).json({
       error: true,
